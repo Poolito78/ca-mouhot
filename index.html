@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CA François Mouhot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f2ee;
+  --surface:#ffffff;
+  --surface-2:#eae8e1;
+  --ink:#1b1d1f;
+  --muted:#6b6f72;
+  --border:#dcdad2;
+  --accent:#b8901f;
+  --accent-ink:#1b1d1f;
+  --positive:#1e7a4a;
+  --negative:#b23a2e;
+  --isomark:#2a5c8a;
+  --rte:#7a4fa0;
+  --autremarque:#c47f2e;
+  --autres:#8b8d84;
+  --exclu:#b7b3a6;
+  --isofloor:#2e8b74;
+  --shadow: 0 1px 2px rgba(20,20,15,.06), 0 4px 14px rgba(20,20,15,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171a;
+    --surface:#1c2024;
+    --surface-2:#23282d;
+    --ink:#ede9e0;
+    --muted:#9a9d9f;
+    --border:#2e3338;
+    --accent:#d8b34a;
+    --accent-ink:#161719;
+    --positive:#49b481;
+    --negative:#e0685a;
+    --isomark:#5b9bd6;
+    --rte:#b490d9;
+    --autremarque:#e0a04f;
+    --autres:#9a9d97;
+    --exclu:#565a5e;
+    --isofloor:#4fb99e;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 18px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171a;
+  --surface:#1c2024;
+  --surface-2:#23282d;
+  --ink:#ede9e0;
+  --muted:#9a9d9f;
+  --border:#2e3338;
+  --accent:#d8b34a;
+  --accent-ink:#161719;
+  --positive:#49b481;
+  --negative:#e0685a;
+  --isomark:#5b9bd6;
+  --rte:#b490d9;
+  --autremarque:#e0a04f;
+  --autres:#9a9d97;
+  --exclu:#565a5e;
+  --isofloor:#4fb99e;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 18px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  padding-inline:20px;
+  padding-block:28px 60px;
+}
+.wrap{max-width:1180px;margin:0 auto;}
+
+.masthead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-wrap:wrap;
+  border-bottom:3px solid var(--ink);
+  padding-bottom:14px;
+  margin-bottom:22px;
+}
+.masthead h1{
+  font-family:"Oswald", sans-serif;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+  font-size:clamp(24px,3.4vw,34px);
+  margin:0;
+  line-height:1.05;
+  text-wrap:balance;
+}
+.masthead .stripe{
+  display:inline-block;
+  width:10px;height:10px;
+  background:var(--accent);
+  margin-right:10px;
+  transform:translateY(-2px);
+}
+.masthead .sub{
+  font-size:13px;
+  color:var(--muted);
+  font-family:"IBM Plex Mono", monospace;
+}
+.masthead-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+}
+.btn-row{display:flex;gap:8px;}
+.masthead .meta{
+  text-align:right;
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.meta b{color:var(--ink);font-weight:600;}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:22px;
+  box-shadow:var(--shadow);
+}
+.kpi{
+  background:var(--surface);
+  padding:16px 16px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+}
+.kpi .label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--muted);
+  font-weight:600;
+}
+.kpi .value{
+  font-family:"IBM Plex Mono", monospace;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(16px,1.9vw,21px);
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.kpi .delta{font-size:12px;font-weight:600;font-family:"IBM Plex Mono",monospace;}
+.kpi .delta.pos{color:var(--positive);}
+.kpi .delta.neg{color:var(--negative);}
+.kpi.accent{background:#1b1d1f;}
+.kpi.accent .label{color:#c9c6ba;}
+.kpi.accent .value{color:#d8b34a;}
+.kpi.accent .delta{color:#c9c6ba;}
+.kpi.accent .delta.pos{color:#7fd6ac;}
+.kpi.accent .delta.neg{color:#f0897c;}
+
+.banner{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-left:4px solid var(--accent);
+  border-radius:8px;
+  padding:11px 14px;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-bottom:22px;
+  line-height:1.55;
+}
+.banner b{color:var(--ink);}
+.banner code{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:1px 6px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11.5px;
+  color:var(--ink);
+}
+.banner-warn{border-left-color:var(--negative);}
+.banner-warn b{color:var(--negative);}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 13px;
+  border-radius:7px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--ink);
+  font-family:"IBM Plex Sans", sans-serif;
+  font-size:12.5px;
+  font-weight:500;
+  cursor:pointer;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.btn:hover{background:var(--surface-2);border-color:var(--accent);}
+.btn svg{width:13px;height:13px;flex-shrink:0;}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;}
+.btn-accent:hover{background:var(--accent);filter:brightness(1.08);border-color:var(--accent);}
+
+.panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  margin-bottom:22px;
+  overflow:hidden;
+}
+.panel h2{
+  font-family:"Oswald", sans-serif;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-weight:600;
+  margin:0;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.panel h2 span.small{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--muted);
+  font-weight:400;
+}
+
+.brandbar-wrap{padding:16px 18px 18px;}
+.brandbar-row{margin-bottom:14px;}
+.brandbar-row:last-child{margin-bottom:0;}
+.brandbar-row-top{display:flex;align-items:center;gap:12px;}
+.brandbar-breakdown{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 14px;
+  margin:6px 0 0 48px;
+  font-size:11px;
+  font-variant-numeric:tabular-nums;
+  color:var(--muted);
+}
+.brandbar-breakdown .bd-item{display:flex;align-items:center;gap:5px;}
+.brandbar-breakdown .bd-item.bd-sub{margin-left:14px;font-size:10.5px;opacity:.8;font-style:italic;}
+.brandbar-breakdown .bd-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+.brandbar-breakdown b{color:var(--ink);font-weight:600;}
+.bd-delta{font-weight:600;}
+.bd-delta.pos{color:var(--positive);}
+.bd-delta.neg{color:var(--negative);}
+.brandbar-row .total{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+.brandbar-row .yr{width:36px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);flex-shrink:0;}
+.brandbar-track{
+  flex:1;
+  display:flex;
+  height:26px;
+  border-radius:5px;
+  overflow:hidden;
+  background:var(--surface-2);
+}
+.brandbar-seg{height:100%;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.brandbar-seg-sub{position:absolute;left:0;bottom:0;height:7px;box-shadow:0 -1px 0 rgba(0,0,0,.25);}
+.brandbar-seg .seg-label{
+  font-size:11px;
+  font-weight:600;
+  color:rgba(0,0,0,.72);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  text-shadow:0 1px 0 rgba(255,255,255,.25);
+}
+.brandbar-row .total{
+  width:110px;
+  text-align:right;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px;
+  font-variant-numeric:tabular-nums;
+  flex-shrink:0;
+}
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  padding:0 18px 16px;
+  font-size:11.5px;
+  color:var(--muted);
+}
+.legend .item{display:flex;align-items:center;gap:6px;}
+.legend .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+.toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding:12px 18px;
+  border-bottom:1px solid var(--border);
+  flex-wrap:wrap;
+}
+.toolbar input[type=search]{
+  flex:1;
+  min-width:160px;
+  padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans", sans-serif;
+  font-size:13px;
+}
+.toolbar input[type=search]:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.toolbar .count{font-size:12px;color:var(--muted);font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
+
+.tablewrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:960px;}
+thead th{
+  position:sticky;top:0;
+  background:var(--surface-2);
+  text-align:right;
+  font-family:"IBM Plex Mono", monospace;
+  font-weight:500;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  color:var(--muted);
+  padding:9px 12px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  user-select:none;
+  white-space:nowrap;
+}
+thead th:first-child{text-align:left;}
+thead th:hover{color:var(--ink);}
+thead th .arrow{opacity:0;font-size:9px;margin-left:3px;}
+thead th.sorted .arrow{opacity:1;color:var(--accent);}
+tbody tr.row{border-bottom:1px solid var(--border);cursor:pointer;}
+tbody tr.row:hover{background:var(--surface-2);}
+tbody td{padding:8px 12px;text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap;}
+tbody td.name{
+  text-align:left;
+  font-family:"IBM Plex Sans", sans-serif;
+  font-weight:500;
+  white-space:normal;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+tbody td.name .tri{
+  display:inline-block;
+  width:8px;height:8px;
+  border-right:2px solid var(--muted);
+  border-bottom:2px solid var(--muted);
+  transform:rotate(-45deg);
+  transition:transform .15s;
+  flex-shrink:0;
+}
+tr.row.open td.name .tri{transform:rotate(45deg);}
+td.ecart.pos{color:var(--positive);}
+td.ecart.neg{color:var(--negative);}
+td.proj{color:var(--accent-alt, var(--accent));font-weight:600;}
+tr.detail{display:none;background:var(--surface-2);}
+tr.detail.open{display:table-row;}
+tr.detail td{padding:0;}
+.detailbox{padding:12px 12px 14px 34px;}
+.detailtable{width:100%;border-collapse:collapse;font-size:12px;}
+.detailtable th{
+  text-align:right;font-weight:500;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;text-transform:uppercase;
+  padding:4px 10px;
+}
+.detailtable th:first-child{text-align:left;}
+.detailtable td{padding:4px 10px;text-align:right;font-family:"IBM Plex Mono",monospace;}
+.detailtable td:first-child{text-align:left;font-family:"IBM Plex Sans",sans-serif;display:flex;align-items:center;gap:6px;}
+.detailtable .dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.detailtable tr.precision{font-style:italic;color:var(--muted);}
+.detailtable tr.precision td:first-child{padding-left:22px;font-size:11.5px;}
+.detailtable tr.precision .dot{width:6px;height:6px;}
+
+footer{
+  text-align:center;
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:26px;
+  font-family:"IBM Plex Mono",monospace;
+}
+
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  .masthead .meta{text-align:left;}
+}
+
+.auth-gate{
+  position:fixed; inset:0; z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg); padding:20px;
+}
+.auth-card{
+  width:100%; max-width:360px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); padding:28px 24px;
+}
+.auth-card h1{
+  font-family:"Oswald",sans-serif; font-weight:700; text-transform:uppercase;
+  letter-spacing:.02em; font-size:20px; margin:0 0 6px 0;
+}
+.auth-sub{color:var(--muted); font-size:13px; margin:0 0 20px 0; line-height:1.4;}
+.auth-card label{display:block; font-size:12.5px; font-weight:500; margin-bottom:14px; color:var(--ink);}
+.auth-card input{
+  width:100%; margin-top:5px; padding:9px 10px; border-radius:7px;
+  border:1px solid var(--border); background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",sans-serif; font-size:14px;
+}
+.auth-card input:focus{outline:none; border-color:var(--accent);}
+.auth-card button{width:100%; justify-content:center; margin-top:4px; padding:10px 13px;}
+.auth-error{color:var(--negative); font-size:12.5px; margin-top:12px; line-height:1.4;}
+.auth-loading{color:var(--muted); font-size:12.5px; margin-top:12px;}
+#dashboardRoot{display:none;}
+
+</style>
+
+</head>
+<body>
+<div id="authGate" class="auth-gate">
+  <div class="auth-card">
+    <h1><span class="stripe"></span>CA François Mouhot</h1>
+    <p class="auth-sub" id="authIntro">Accès réservé — connectez-vous avec votre compte CRM SIGNALISE (mêmes identifiants).</p>
+    <form id="authForm">
+      <label>Email
+        <input type="email" id="authEmail" required autocomplete="username" inputmode="email">
+      </label>
+      <label>Mot de passe
+        <input type="password" id="authPassword" required autocomplete="current-password">
+      </label>
+      <button type="submit" class="btn btn-accent" id="authSubmit">Se connecter</button>
+      <div class="auth-error" id="authError" hidden></div>
+      <div class="auth-loading" id="authLoading" hidden>Connexion…</div>
+    </form>
+  </div>
+</div>
+<div id="dashboardRoot">
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1><span class="stripe"></span>CA par client — François Mouhot</h1>
+      <div class="sub">Odoo · connexion API temps réel · vendeur = François MOUHOT · factures postées, avoirs déduits</div>
+    </div>
+    <div class="masthead-right">
+      <div class="btn-row">
+        <button class="btn" id="logoutBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Se déconnecter
+        </button>
+        <button class="btn btn-accent" id="exportBtnTop" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Extraire vers Excel
+        </button>
+      </div>
+      <div class="meta">
+        Dernière actualisation : <b id="genAtLabel">—</b><br>
+        Période comparée : <b id="periodLabel">—</b> (2026 vs 2025)
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="banner">
+    <div>
+      <b>Note méthode.</b> Le <b>CA 2026</b> est relevé <b>en temps réel via l'API Odoo</b> (connexion directe, plus d'export manuel), <b>avoirs/notes de crédit déduits</b> des factures. Le <b>CA STI 2025</b> reste <b>figé sur les données réelles</b> (rapport commercial + fichier client) car Odoo sous-estime fortement le STI sur cette période (vérifié à chaque actualisation). 4 marques, dont la somme retombe exactement sur le total : ISOMARK = catégorie Odoo « ISOMARK » + sous-catégorie « FLOORING » (résine ISOFLOOR, détail au clic) · <b>STI = catégories Odoo « PLASTIQUE » + « SEMI-FINIS / STI »</b> · RTE = catégorie Odoo « RTE » · <b>ISOSIGN SV</b> = solde (signalisation verticale, négoce…) <b>+ transport / lignes hors catégorie</b>, regroupés ensemble. Les sous-lignes « dont … » (ISOFLOOR sous ISOMARK, transport sous ISOSIGN SV) sont <b>déjà comprises</b> dans le total de leur marque, affichées seulement pour information — ne pas les additionner en plus du total.
+      La <b>projection fin d'année</b> est calculée par client : CA 2026 à date + reste à courir estimé (CA 2025 année pleine − CA 2025 à date, jamais négatif — <b>pondération mensuelle/saisonnière propre à chaque client</b>), ajusté par un <b>taux de croissance mixte</b> combinant l'évolution propre du client à date (2026 vs 2025 à date) — pondérée par sa crédibilité selon son historique 2025 — et le taux de croissance global observé (<span id="growthRateLabel">—</span>) en repli pour les clients à faible historique, borné pour rester réaliste. Jamais en-dessous du CA déjà facturé. Override manuel pour un cas particulier (ex : DRS SIGNALISATION, plus d'affaire attendue — projection figée à son CA à date).
+    </div>
+  </div>
+  <div class="banner" id="stiWarnBanner" hidden>
+    <div>
+      <b>Correction CA STI 2025 (année pleine, figée).</b> <span id="stiWarnText"></span>
+    </div>
+  </div>
+  <div class="banner" id="stiYtdWarnBanner" hidden>
+    <div>
+      <b>Correction CA STI 2025 (à date, figée).</b> <span id="stiYtdWarnText"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Répartition par marque <span class="small" id="brandbarPeriodLabel">Total HT</span></h2>
+    <div class="brandbar-wrap" id="brandbars"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Répartition par marque — Projection fin d'année 2026 vs Réalisé 2025 <span class="small">Total HT, année pleine</span></h2>
+    <div class="brandbar-wrap" id="brandbars2"></div>
+    <div class="legend" id="legend2"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Détail par client <span class="small" id="rowcount"></span></h2>
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Filtrer un client…">
+      <span class="count" id="filtercount"></span>
+      <button class="btn" id="exportBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        Extraire vers Excel
+      </button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-key="client" style="text-align:left">Client<span class="arrow">▾</span></th>
+            <th data-key="t26">CA 2026<span class="arrow">▾</span></th>
+            <th data-key="t25ytd">CA 2025<span class="arrow">▾</span></th>
+            <th data-key="t25full">CA 2025 (année pleine)<span class="arrow">▾</span></th>
+            <th data-key="ecart_eur">Écart €<span class="arrow">▾</span></th>
+            <th data-key="ecart_pct">Écart %<span class="arrow">▾</span></th>
+            <th data-key="proj26">Projection FY26<span class="arrow">▾</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Données Odoo (www.odoo-sign.fr) — publiées depuis le PC du bureau à chaque ACTUALISER.bat. Accès réservé aux comptes CRM autorisés.</footer>
+</div>
+</div>
+<!-- /#dashboardRoot -->
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+<script>
+function renderDashboard(DATA){
+const S = DATA.summary;
+const fmtEUR = v => (v<0?'-':'') + Math.abs(Math.round(v)).toLocaleString('fr-FR') + ' €';
+const fmtEURf = v => (v<0?'-':'') + Math.abs(v).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' €';
+const fmtPct = v => (v>=0?'+':'') + (v*100).toFixed(1).replace('.',',') + ' %';
+
+// ---------- Bandeau : période & date d'actualisation ----------
+function fmtCutoffFR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}`;
+}
+function fmtGenAtFR(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  if(isNaN(d)) return '—';
+  const pad = n => String(n).padStart(2,'0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} à ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+const periodLabelText = `01/01 → ${fmtCutoffFR(S.cutoff_2026)}`;
+document.getElementById('genAtLabel').textContent = fmtGenAtFR(S.generated_at_odoo);
+document.getElementById('periodLabel').textContent = periodLabelText;
+document.getElementById('brandbarPeriodLabel').textContent = `Total HT, ${periodLabelText}`;
+const growthRateEl = document.getElementById('growthRateLabel');
+if (growthRateEl) growthRateEl.textContent = fmtPct(S.overall_growth_rate || 0);
+
+// enrich rows
+DATA.rows.forEach(r=>{
+  r.ecart_eur = r.t26 - r.t25ytd;
+  r.ecart_pct = r.t25ytd !== 0 ? r.ecart_eur / r.t25ytd : (r.t26>0?1:0);
+});
+
+// ---------- KPI cards ----------
+const growthYtd = S.overall_25ytd ? (S.overall_26 - S.overall_25ytd)/S.overall_25ytd : 0;
+const growthProj = S.overall_25full ? (S.overall_projection - S.overall_25full)/S.overall_25full : 0;
+const kpis = [
+  {label:'CA facturé 2026 (à date)', value: fmtEUR(S.overall_26), delta:null, cls:''},
+  {label:'CA facturé 2025 (même période)', value: fmtEUR(S.overall_25ytd), delta:null, cls:''},
+  {label:'Évolution à date', value: fmtPct(growthYtd), delta:(S.overall_26-S.overall_25ytd), cls:''},
+  {label:'Réalisé 2025 (année pleine)', value: fmtEUR(S.overall_25full), delta:null, cls:''},
+  {label:'Projection fin 2026', value: fmtEUR(S.overall_projection), delta:growthProj, cls:'accent'},
+];
+document.getElementById('kpis').innerHTML = kpis.map(k=>`
+  <div class="kpi ${k.cls}">
+    <div class="label">${k.label}</div>
+    <div class="value">${k.value}</div>
+    ${k.delta!==null ? `<div class="delta ${k.delta>=0?'pos':'neg'}">${typeof k.delta==='number' && Math.abs(k.delta)<5 ? fmtPct(k.delta) : (k.cls==='accent'? 'vs 2025 : '+fmtPct(k.delta) : (k.delta>=0?'+':'')+fmtEUR(k.delta)) }</div>`:''}
+  </div>
+`).join('');
+
+// ---------- Brand bars ----------
+// 4 marques : ISOSIGN SV inclut désormais le hors-marque / transport (comme le tableau comparatif d'origine).
+// NB : ISOFLOOR (résine) et le transport/divers sont déjà comptés dans respectivement
+// ISOMARK et ISOSIGN SV (voir categ_brand() côté extraction) — ce ne sont pas des
+// segments à empiler en plus, seulement des sous-lignes "dont" affichées en légende.
+const brandDefs = [
+  {key:'isosign_sv', label:'ISOSIGN SV (dont transport)', color:'var(--autremarque)'},
+  {key:'isomark', label:'ISOMARK (dont résine ISOFLOOR)', color:'var(--isomark)'},
+  {key:'sti', label:'STI (gamme plastique)', color:'var(--rte)'},
+  {key:'rte', label:'RTE', color:'var(--autres)'},
+];
+// Per-client expand detail: ISOMARK shown as combined total (ISOMARK + ISOFLOOR),
+// with ISOFLOOR broken out as an indented precision sub-line underneath.
+const detailBrandDefs = [
+  {key:'isosign_sv', label:'ISOSIGN SV (dont transport / divers)', color:'var(--autremarque)', precisionKey:'exclu', precisionLabel:'dont transport / divers', precisionColor:'var(--exclu)'},
+  {key:'isomark', label:'ISOMARK (dont résine ISOFLOOR)', color:'var(--isomark)', precisionKey:'isofloor', precisionLabel:'dont ISOFLOOR (résine)', precisionColor:'var(--isofloor)'},
+  {key:'sti', label:'STI (gamme plastique)', color:'var(--rte)', infoKey:'sti25full_correction', infoLabel:'dont fichier complémentaire (année pleine 2025)', infoColor:'var(--muted)',
+   infoKey2:'sti25ytd_correction', infoLabel2:'dont réallocation fichier (à date, au prorata)', infoColor2:'var(--muted)'},
+  {key:'rte', label:'RTE', color:'var(--autres)'},
+];
+function brandTotal(year){
+  const t = {isosign_sv:0, isomark:0, isofloor:0, sti:0, rte:0};
+  DATA.rows.forEach(r=>{
+    t.isosign_sv += r['isosign_sv'+year] || 0;
+    t.isomark += r['isomark'+year] || 0;
+    t.isofloor += r['isofloor'+year] || 0;
+    t.sti += r['sti'+year] || 0;
+    t.rte += r['rte'+year] || 0;
+  });
+  return t;
+}
+const b26 = brandTotal(26), b25 = brandTotal(25);
+const maxTotal = Math.max(S.overall_26, S.overall_25ytd);
+function barRow(yearLabel, totals, grandTotal, compareTotals, compareGrandTotal, maxTotalOverride){
+  const mt = maxTotalOverride || maxTotal;
+  const segs = brandDefs.map(d=>{
+    const v = totals[d.key];
+    const widthOfBar = grandTotal ? (v/grandTotal*100) : 0;
+    // Only print the amount inside the segment if it's wide enough to hold it legibly.
+    const label = widthOfBar >= 7 ? `<span class="seg-label">${fmtEURf(v)}</span>` : '';
+    // Sous-barre "dont ISOFLOOR" : superposée en bas du segment ISOMARK, dans sa
+    // propre couleur, sur une largeur proportionnelle à sa part DANS ISOMARK (elle
+    // n'ajoute donc aucune largeur au total — ISOFLOOR est déjà compris dans ISOMARK).
+    let subBar = '';
+    if (d.key === 'isomark' && totals.isofloor && v){
+      const subWidthPct = Math.min(100, (totals.isofloor/v*100));
+      subBar = `<div class="brandbar-seg-sub" style="width:${subWidthPct}%;background:var(--isofloor)" title="dont ISOFLOOR (résine): ${fmtEURf(totals.isofloor)}"></div>`;
+    }
+    return `<div class="brandbar-seg" style="width:${widthOfBar}%;background:${d.color}" title="${d.label}: ${fmtEURf(v)}">${label}${subBar}</div>`;
+  }).join('');
+  const barWidthPct = mt ? (grandTotal/mt*100) : 0;
+  const breakdown = brandDefs.map(d=>{
+    let deltaHtml = '';
+    if(compareTotals){
+      const prev = compareTotals[d.key] || 0;
+      const cur = totals[d.key] || 0;
+      const pct = prev ? (cur-prev)/prev : (cur>0 ? 1 : 0);
+      deltaHtml = ` <span class="bd-delta ${pct>=0?'pos':'neg'}">${fmtPct(pct)}</span>`;
+    }
+    // Sous-ligne "dont" pour ISOFLOOR (déjà comprise dans le total ISOMARK ci-dessus,
+    // affichée pour info seulement — ne pas l'additionner au total de la marque).
+    let subHtml = '';
+    if (d.key === 'isomark' && totals.isofloor) {
+      let subDeltaHtml = '';
+      if (compareTotals) {
+        const prevSub = compareTotals.isofloor || 0;
+        const curSub = totals.isofloor || 0;
+        const pctSub = prevSub ? (curSub-prevSub)/prevSub : (curSub>0 ? 1 : 0);
+        subDeltaHtml = ` <span class="bd-delta ${pctSub>=0?'pos':'neg'}">${fmtPct(pctSub)}</span>`;
+      }
+      subHtml = `<div class="bd-item bd-sub"><span class="bd-dot" style="background:var(--isofloor)"></span>dont ISOFLOOR (résine) : <b>${fmtEURf(totals.isofloor)}</b>${subDeltaHtml}</div>`;
+    }
+    return `<div class="bd-item"><span class="bd-dot" style="background:${d.color}"></span>${d.label} : <b>${fmtEURf(totals[d.key])}</b>${deltaHtml}</div>${subHtml}`;
+  }).join('');
+  const totalDelta = compareGrandTotal ? ` <span class="bd-delta ${(grandTotal-compareGrandTotal)>=0?'pos':'neg'}" style="font-size:11px">${fmtPct(compareGrandTotal ? (grandTotal-compareGrandTotal)/compareGrandTotal : 0)}</span>` : '';
+  return `<div class="brandbar-row">
+    <div class="brandbar-row-top">
+      <div class="yr">${yearLabel}</div>
+      <div class="brandbar-track" style="width:${barWidthPct}%">${segs}</div>
+      <div class="total"><span>${fmtEURf(grandTotal)}</span>${totalDelta}</div>
+    </div>
+    <div class="brandbar-breakdown">${breakdown}</div>
+  </div>`;
+}
+document.getElementById('brandbars').innerHTML =
+  barRow('2026', b26, S.overall_26, b25, S.overall_25ytd) + barRow('2025', b25, S.overall_25ytd);
+document.getElementById('legend').innerHTML = brandDefs.map(d=>
+  `<div class="item"><span class="dot" style="background:${d.color}"></span>${d.label}</div>`
+).join('');
+
+// ---------- Brand bars — Réalisé 2025 (année pleine) vs Projection fin d'année 2026 ----------
+// La projection totale par client (r.proj26) est déjà calculée côté serveur (voir note
+// méthode) ; ici on la ventile par marque au prorata du "reste à courir" 2025 de chaque
+// marque (CA 2025 année pleine - CA 2025 à date, plafonné à 0), afin que la somme des
+// marques retombe exactement sur r.proj26 — même logique en cascade pour ISOFLOOR (dont
+// ISOMARK) et le transport/divers (dont ISOSIGN SV).
+function brandFullYearVsProjection(){
+  const real25 = {isosign_sv:0, isomark:0, isofloor:0, sti:0, rte:0};
+  const proj26 = {isosign_sv:0, isomark:0, isofloor:0, sti:0, rte:0};
+  DATA.rows.forEach(r=>{
+    real25.isosign_sv += r.isosign_sv25full || 0;
+    real25.isomark    += r.isomark25full || 0;
+    real25.isofloor    += r.isofloor25full || 0;
+    real25.sti          += r.sti25full || 0;
+    real25.rte           += r.rte25full || 0;
+
+    const extraTotal = (r.proj26||0) - (r.t26||0); // reste à courir déjà projeté (calcul officiel client)
+    const reste = {
+      isosign_sv: Math.max((r.isosign_sv25full||0)-(r.isosign_sv25||0), 0),
+      isomark:    Math.max((r.isomark25full||0)-(r.isomark25||0), 0),
+      sti:        Math.max((r.sti25full||0)-(r.sti25||0), 0),
+      rte:        Math.max((r.rte25full||0)-(r.rte25||0), 0),
+    };
+    const resteSum = reste.isosign_sv + reste.isomark + reste.sti + reste.rte;
+    let isosignExtra=0, isomarkExtra=0, stiExtra=0, rteExtra=0;
+    if (resteSum > 0 && extraTotal){
+      isosignExtra = extraTotal * (reste.isosign_sv/resteSum);
+      isomarkExtra = extraTotal * (reste.isomark/resteSum);
+      stiExtra     = extraTotal * (reste.sti/resteSum);
+      rteExtra     = extraTotal * (reste.rte/resteSum);
+    }
+    proj26.isosign_sv += (r.isosign_sv26||0) + isosignExtra;
+    proj26.isomark    += (r.isomark26||0) + isomarkExtra;
+    proj26.sti          += (r.sti26||0) + stiExtra;
+    proj26.rte           += (r.rte26||0) + rteExtra;
+
+    // ISOFLOOR : part de l'extra ISOMARK au prorata du reste ISOFLOOR dans le reste ISOMARK
+    const isofloorReste = Math.max((r.isofloor25full||0)-(r.isofloor25||0), 0);
+    let isofloorExtra = 0;
+    if (reste.isomark > 0) isofloorExtra = isomarkExtra * (isofloorReste/reste.isomark);
+    proj26.isofloor += (r.isofloor26||0) + isofloorExtra;
+  });
+  return {real25, proj26};
+}
+const {real25: b25full, proj26: bProj} = brandFullYearVsProjection();
+const maxTotalFY = Math.max(S.overall_25full, S.overall_projection);
+document.getElementById('brandbars2').innerHTML =
+  barRow('Proj. 26', bProj, S.overall_projection, b25full, S.overall_25full, maxTotalFY) +
+  barRow('2025', b25full, S.overall_25full, null, null, maxTotalFY);
+document.getElementById('legend2').innerHTML = brandDefs.map(d=>
+  `<div class="item"><span class="dot" style="background:${d.color}"></span>${d.label}</div>`
+).join('');
+
+// ---------- Table ----------
+const tbody = document.getElementById('tbody');
+let sortKey = 't26', sortDir = -1;
+let filterText = '';
+
+function renderTable(){
+  const filtered = DATA.rows.filter(r => r.client.toLowerCase().includes(filterText));
+  filtered.sort((a,b)=>{
+    let av=a[sortKey], bv=b[sortKey];
+    if (sortKey==='client') return sortDir * String(av).localeCompare(String(bv), 'fr');
+    return sortDir * ((av||0) - (bv||0));
+  });
+  document.getElementById('filtercount').textContent = filtered.length + ' / ' + DATA.rows.length + ' clients';
+  document.getElementById('rowcount').textContent = DATA.rows.length + ' clients au total';
+
+  tbody.innerHTML = filtered.map((r,i)=>{
+    const id = 'r'+i;
+    const ecartCls = r.ecart_eur>=0?'pos':'neg';
+    return `
+    <tr class="row" data-target="${id}">
+      <td class="name"><span class="tri"></span>${r.client}</td>
+      <td>${fmtEURf(r.t26)}</td>
+      <td>${fmtEURf(r.t25ytd)}</td>
+      <td>${fmtEURf(r.t25full)}</td>
+      <td class="ecart ${ecartCls}">${(r.ecart_eur>=0?'+':'')+fmtEURf(r.ecart_eur)}</td>
+      <td class="ecart ${ecartCls}">${fmtPct(r.ecart_pct)}</td>
+      <td class="proj">${fmtEURf(r.proj26)}</td>
+    </tr>
+    <tr class="detail" id="${id}"><td colspan="7"><div class="detailbox">
+      <table class="detailtable">
+        <thead><tr><th>Marque</th><th>CA 2026</th><th>CA 2025</th><th>Écart</th></tr></thead>
+        <tbody>
+          ${detailBrandDefs.map(d=>{
+            // NB : v26/v25 = r[d.key+year] déjà — le total "marque" (ex. isomark26)
+            // inclut DÉJÀ le montant de sa sous-ligne de précision (ex. isofloor26),
+            // voir odoo_extract_ca.py::categ_brand(). Ne PAS additionner à nouveau la
+            // précision ici, sinon ISOFLOOR (ou transport) est compté deux fois et le
+            // total affiché ne correspond plus à Odoo (écart constaté le 17/09/2026).
+            let v26 = r[d.key+'26']||0, v25 = r[d.key+'25']||0;
+            if (Math.abs(v26)<0.01 && Math.abs(v25)<0.01) return '';
+            let rowsHtml = `<tr>
+              <td><span class="dot" style="background:${d.color}"></span>${d.label}</td>
+              <td>${fmtEURf(v26)}</td>
+              <td>${fmtEURf(v25)}</td>
+              <td>${(v26-v25>=0?'+':'')+fmtEURf(v26-v25)}</td>
+            </tr>`;
+            if (d.precisionKey){
+              const p26 = r[d.precisionKey+'26']||0, p25 = r[d.precisionKey+'25']||0;
+              if (Math.abs(p26)>=0.01 || Math.abs(p25)>=0.01){
+                rowsHtml += `<tr class="precision">
+                  <td><span class="dot" style="background:${d.precisionColor}"></span>${d.precisionLabel}</td>
+                  <td>${fmtEURf(p26)}</td>
+                  <td>${fmtEURf(p25)}</td>
+                  <td>${(p26-p25>=0?'+':'')+fmtEURf(p26-p25)}</td>
+                </tr>`;
+              }
+            }
+            if (d.infoKey){
+              const ip25 = r[d.infoKey]||0;
+              if (Math.abs(ip25)>=0.01){
+                rowsHtml += `<tr class="precision">
+                  <td><span class="dot" style="background:${d.infoColor}"></span>${d.infoLabel}</td>
+                  <td>—</td>
+                  <td>${fmtEURf(ip25)}</td>
+                  <td></td>
+                </tr>`;
+              }
+            }
+            if (d.infoKey2){
+              const ip25b = r[d.infoKey2]||0;
+              if (Math.abs(ip25b)>=0.01){
+                rowsHtml += `<tr class="precision">
+                  <td><span class="dot" style="background:${d.infoColor2}"></span>${d.infoLabel2}</td>
+                  <td>—</td>
+                  <td>${fmtEURf(ip25b)}</td>
+                  <td></td>
+                </tr>`;
+              }
+            }
+            return rowsHtml;
+          }).join('')}
+        </tbody>
+      </table>
+    </div></td></tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('tr.row').forEach(tr=>{
+    tr.addEventListener('click', ()=>{
+      const detail = document.getElementById(tr.dataset.target);
+      tr.classList.toggle('open');
+      detail.classList.toggle('open');
+    });
+  });
+}
+
+document.querySelectorAll('thead th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = key==='client' ? 1 : -1; }
+    document.querySelectorAll('thead th').forEach(t=>t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.querySelector('.arrow').textContent = sortDir===1 ? '▾' : '▴';
+    renderTable();
+  });
+});
+document.getElementById('search').addEventListener('input', e=>{
+  filterText = e.target.value.toLowerCase();
+  renderTable();
+});
+
+renderTable();
+
+// ---------- STI 2025 correction banner ----------
+const stiCorr = S.sti_2025_full_year_correction;
+if (stiCorr){
+  document.getElementById('stiWarnText').textContent =
+    `+${fmtEUR(stiCorr.amount_added_existing_clients)} sur ${stiCorr.clients_corrected} clients existants, et ${stiCorr.new_clients_added} clients supplémentaires ajoutés (+${fmtEUR(stiCorr.amount_added_new_clients)}, aucun CA 2026/2025 à date par ailleurs) — total intégré ${fmtEUR(stiCorr.total_amount_integrated)}, soit 100% du fichier fourni. Réalisé 2025 année pleine et projection fin 2026 mis à jour en conséquence.`;
+  document.getElementById('stiWarnBanner').hidden = false;
+}
+
+// ---------- STI 2025 "à date" correction banner ----------
+if (S.sti25ytd_correction_total){
+  document.getElementById('stiYtdWarnText').textContent =
+    `Chiffre réel janvier-septembre 2025 (rapport commercial) : ${fmtEUR(S.sti25ytd_real_total)}, contre ${fmtEUR(S.sti25ytd_odoo_total)} extraits d'Odoo — écart de +${fmtEUR(S.sti25ytd_correction_total)} réparti au prorata entre les clients déjà identifiés dans le fichier STI année pleine. CA 2025 à date, écart % et graphique de répartition par marque mis à jour en conséquence.`;
+  document.getElementById('stiYtdWarnBanner').hidden = false;
+}
+
+// ---------- Export to Excel ----------
+// Both buttons (top masthead + table toolbar) stay visible by default and only report
+// a problem at click time, rather than disappearing silently if the capability probe
+// is slow or inconclusive.
+// Telechargement navigateur classique (site en ligne : pas de runtime Claude ici).
+function saveBlob(filename, blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+// Palette matches the delivered .xlsx workbook (build_xlsx_final.py) exactly.
+const XF = "Arial";
+const S_BORDER = { top:{style:"thin",color:{rgb:"D9D9D9"}}, bottom:{style:"thin",color:{rgb:"D9D9D9"}}, left:{style:"thin",color:{rgb:"D9D9D9"}}, right:{style:"thin",color:{rgb:"D9D9D9"}} };
+const S_TITLE = { font:{name:XF, bold:true, sz:13} };
+const S_SUBTITLE = { font:{name:XF, italic:true, sz:9, color:{rgb:"595959"}} };
+const S_HEADER = { font:{name:XF, bold:true, sz:9, color:{rgb:"FFFFFF"}}, fill:{fgColor:{rgb:"C00000"}, patternType:"solid"}, alignment:{horizontal:"center", vertical:"center", wrapText:true}, border:S_BORDER };
+const S_GROUPHDR = { font:{name:XF, bold:true, sz:10, color:{rgb:"FFFFFF"}}, fill:{fgColor:{rgb:"595959"}, patternType:"solid"}, alignment:{horizontal:"center"} };
+const S_NOTE = { font:{name:XF, italic:true, sz:8, color:{rgb:"808080"}}, alignment:{wrapText:true, vertical:"top"} };
+const EUR_FMT = "#,##0.00 €";
+const PCT_FMT = "0.0%";
+function sNum(bold, colorRgb){
+  return { font:{name:XF, sz: bold?10:10, bold: !!bold, color: colorRgb?{rgb:colorRgb}:undefined}, border:S_BORDER, numFmt:EUR_FMT };
+}
+function sPct(bold, colorRgb){
+  return { font:{name:XF, sz:10, bold: !!bold, color: colorRgb?{rgb:colorRgb}:undefined}, border:S_BORDER, numFmt:PCT_FMT };
+}
+function sName(bold, fillRgb){
+  return { font:{name:XF, sz: bold?10:10, bold: !!bold}, border:S_BORDER, fill: fillRgb?{fgColor:{rgb:fillRgb}, patternType:"solid"}:undefined };
+}
+function setCell(ws, addr, value, style){
+  const c = { v: value };
+  if (typeof value === 'number') c.t = 'n';
+  if (style) c.s = style;
+  if (style && style.numFmt) c.z = style.numFmt;
+  ws[addr] = c;
+}
+function extendRange(ws, addr){
+  const ref = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
+  const cell = XLSX.utils.decode_cell(addr);
+  ref.s.r = Math.min(ref.s.r, cell.r); ref.s.c = Math.min(ref.s.c, cell.c);
+  ref.e.r = Math.max(ref.e.r, cell.r); ref.e.c = Math.max(ref.e.c, cell.c);
+  ws['!ref'] = XLSX.utils.encode_range(ref);
+}
+
+async function exportToExcel(btn){
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  try {
+    const filtered = DATA.rows.filter(r => r.client.toLowerCase().includes(filterText));
+    filtered.sort((a,b)=>{
+      let av=a[sortKey], bv=b[sortKey];
+      if (sortKey==='client') return sortDir * String(av).localeCompare(String(bv), 'fr');
+      return sortDir * ((av||0) - (bv||0));
+    });
+
+    const wb = XLSX.utils.book_new();
+
+    // ---------- Sheet 1: Analyse des factures (même mise en forme que le fichier Excel) ----------
+    const ws1 = {};
+    setCell(ws1, 'B2', 'CA Facturé par Client — François MOUHOT — détail par marque', S_TITLE);
+    setCell(ws1, 'B3', 'Comparatif 2026 vs 2025, à date (01/01 au 13/09) — Total HT, source Odoo (Analyse des factures)', S_SUBTITLE);
+    const groupRow = 5, headerRow = 6, totalRow = 7, firstDataRow = 8;
+    setCell(ws1, 'C'+groupRow, '2026 (01/01 → 13/09)', S_GROUPHDR);
+    setCell(ws1, 'H'+groupRow, '2025 (01/01 → 13/09)', S_GROUPHDR);
+    const brandCols = ['Total','ISOSIGN SV (dont transport)','ISOMARK (dont ISOFLOOR)','STI','RTE'];
+    const headers1 = ['Client', ...brandCols, ...brandCols, 'CA 2025 (année pleine)', 'Écart Total (€)', 'Écart Total (%)', 'Projection FY26'];
+    headers1.forEach((h,i)=> setCell(ws1, XLSX.utils.encode_cell({r:headerRow-1, c:1+i}), h, S_HEADER));
+    setCell(ws1, 'B'+totalRow, 'TOTAL FRANÇOIS MOUHOT', sName(true, 'FCE4E4'));
+    filtered.forEach((r,i)=>{
+      const rr = firstDataRow + i;
+      setCell(ws1, 'B'+rr, r.client, sName(false));
+      const vals26 = [r.t26, r.isosign_sv26, r.isomark26+(r.isofloor26||0), r.sti26, r.rte26];
+      const vals25 = [r.t25ytd, r.isosign_sv25, r.isomark25+(r.isofloor25||0), r.sti25, r.rte25];
+      vals26.forEach((v,j)=> setCell(ws1, XLSX.utils.encode_cell({r:rr-1, c:2+j}), v, sNum(false)));
+      vals25.forEach((v,j)=> setCell(ws1, XLSX.utils.encode_cell({r:rr-1, c:7+j}), v, sNum(false)));
+      const t25fullStyle = sNum(false); t25fullStyle.font = {name:'Arial', sz:10, italic:true, color:{rgb:'595959'}};
+      setCell(ws1, 'M'+rr, r.t25full, t25fullStyle);
+      setCell(ws1, 'N'+rr, r.ecart_eur, sNum(false));
+      setCell(ws1, 'O'+rr, r.ecart_pct, sPct(false));
+      setCell(ws1, 'P'+rr, r.proj26, sNum(true, 'B8901F'));
+    });
+    const lastDataRow = firstDataRow + filtered.length - 1;
+    'CDEFGHIJKLM'.split('').forEach(col=>{
+      let sum = 0; for (let rr=firstDataRow; rr<=lastDataRow; rr++){ const c = ws1[col+rr]; if (c) sum += c.v; }
+      setCell(ws1, col+totalRow, sum, sNum(true, undefined));
+      ws1[col+totalRow].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
+    });
+    setCell(ws1, 'N'+totalRow, S.overall_26 - S.overall_25ytd, sNum(true)); ws1['N'+totalRow].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
+    setCell(ws1, 'O'+totalRow, S.overall_25ytd ? (S.overall_26-S.overall_25ytd)/S.overall_25ytd : '', sPct(true)); ws1['O'+totalRow].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
+    setCell(ws1, 'P'+totalRow, S.overall_projection, sNum(true)); ws1['P'+totalRow].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
+    const noteRow1 = lastDataRow + 2;
+    setCell(ws1, 'B'+noteRow1, "Export généré depuis le dashboard en ligne — mêmes couleurs, colonnes et méthode de ventilation par marque que le fichier Excel de référence (4 marques : ISOSIGN SV incl. transport, ISOMARK incl. ISOFLOOR, STI, RTE).", S_NOTE);
+    extendRange(ws1, 'P'+noteRow1);
+    ws1['!cols'] = [{wch:2},{wch:40},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:14},{wch:12},{wch:14}];
+    ws1['!merges'] = [
+      {s:{r:1,c:1}, e:{r:1,c:15}}, {s:{r:2,c:1}, e:{r:2,c:15}},
+      {s:{r:groupRow-1,c:2}, e:{r:groupRow-1,c:6}}, {s:{r:groupRow-1,c:7}, e:{r:groupRow-1,c:11}},
+      {s:{r:noteRow1-1,c:1}, e:{r:noteRow1-1,c:15}},
+    ];
+    ws1['!freeze'] = {xSplit:2, ySplit:firstDataRow-1};
+    XLSX.utils.book_append_sheet(wb, ws1, 'Analyse des factures');
+
+    // ---------- Sheet 2: Détail développé par marque (mêmes couleurs que l'onglet Excel) ----------
+    const ws2 = {};
+    setCell(ws2, 'B2', 'CA par Client — Détail développé par marque — François MOUHOT', S_TITLE);
+    setCell(ws2, 'B3', "ISOMARK inclut ISOFLOOR et ISOSIGN SV inclut le transport / divers (sous-lignes déjà comprises dans le total du dessus). La ligne STI « dont fichier complémentaire » indique la part de CA STI 2025 ANNÉE PLEINE ajoutée depuis le fichier fourni (ne s'additionne pas à la colonne 2025 à date).", S_SUBTITLE);
+    const hdr2 = 5;
+    ['Client / Marque','CA 2026','CA 2025','Écart (€)','Écart (%)'].forEach((h,i)=> setCell(ws2, XLSX.utils.encode_cell({r:hdr2-1,c:1+i}), h, S_HEADER));
+    let r2 = hdr2 + 1;
+    const brandDefs2 = [
+      {key:'isosign_sv', label:'ISOSIGN SV (dont transport / divers)', precisionKey:'exclu', precisionLabel:'dont transport / divers', precisionColor:'b7b3a6'},
+      {key:'isomark', label:'ISOMARK (dont résine ISOFLOOR)', precisionKey:'isofloor', precisionLabel:'dont ISOFLOOR (résine)', precisionColor:'2e8b74'},
+      {key:'sti', label:'STI', infoKey:'sti25full_correction', infoLabel:'dont fichier complémentaire (année pleine 2025)',
+       infoKey2:'sti25ytd_correction', infoLabel2:'dont réallocation fichier (à date, au prorata)'},
+      {key:'rte', label:'RTE'},
+    ];
+    filtered.forEach(r=>{
+      setCell(ws2, 'B'+r2, r.client, sName(true, 'EDEDED'));
+      setCell(ws2, 'C'+r2, r.t26, sNum(true)); ws2['C'+r2].s.fill = {fgColor:{rgb:'EDEDED'}, patternType:'solid'};
+      setCell(ws2, 'D'+r2, r.t25ytd, sNum(true)); ws2['D'+r2].s.fill = {fgColor:{rgb:'EDEDED'}, patternType:'solid'};
+      setCell(ws2, 'E'+r2, r.ecart_eur, sNum(true)); ws2['E'+r2].s.fill = {fgColor:{rgb:'EDEDED'}, patternType:'solid'};
+      setCell(ws2, 'F'+r2, r.ecart_pct, sPct(true)); ws2['F'+r2].s.fill = {fgColor:{rgb:'EDEDED'}, patternType:'solid'};
+      r2++;
+      brandDefs2.forEach(d=>{
+        // NB : le total "marque" (ex. isomark) inclut déjà sa sous-ligne de précision
+        // (ex. isofloor) — ne pas l'additionner à nouveau (voir dashboard principal).
+        let v26 = r[d.key+'26']||0, v25 = r[d.key+'25']||0;
+        if (Math.abs(v26)<0.005 && Math.abs(v25)<0.005) return;
+        const brandStyle = { font:{name:XF, sz:9.5, color:{rgb:'404040'}}, border:S_BORDER, numFmt:EUR_FMT };
+        setCell(ws2, 'B'+r2, '   '+d.label, {font:{name:XF, sz:9.5, color:{rgb:'404040'}}, border:S_BORDER});
+        setCell(ws2, 'C'+r2, v26, brandStyle);
+        setCell(ws2, 'D'+r2, v25, brandStyle);
+        setCell(ws2, 'E'+r2, v26-v25, brandStyle);
+        r2++;
+        if (d.precisionKey){
+          const p26 = r[d.precisionKey+'26']||0, p25 = r[d.precisionKey+'25']||0;
+          if (Math.abs(p26)>=0.005 || Math.abs(p25)>=0.005){
+            const precFont = {name:XF, italic:true, sz:9, color:{rgb:d.precisionColor}};
+            const precStyle = { font:precFont, border:S_BORDER, numFmt:EUR_FMT };
+            setCell(ws2, 'B'+r2, '      '+d.precisionLabel, {font:precFont, border:S_BORDER});
+            setCell(ws2, 'C'+r2, p26, precStyle);
+            setCell(ws2, 'D'+r2, p25, precStyle);
+            setCell(ws2, 'E'+r2, p26-p25, precStyle);
+            r2++;
+          }
+        }
+        if (d.infoKey){
+          const ip25 = r[d.infoKey]||0;
+          if (Math.abs(ip25)>=0.005){
+            const infoFont = {name:XF, italic:true, sz:9, color:{rgb:'808080'}};
+            setCell(ws2, 'B'+r2, '      '+d.infoLabel, {font:infoFont, border:S_BORDER});
+            setCell(ws2, 'C'+r2, '—', {font:infoFont, border:S_BORDER, alignment:{horizontal:'center'}});
+            setCell(ws2, 'D'+r2, ip25, {font:infoFont, border:S_BORDER, numFmt:EUR_FMT});
+            setCell(ws2, 'E'+r2, '', {font:infoFont, border:S_BORDER});
+            r2++;
+          }
+        }
+        if (d.infoKey2){
+          const ip25b = r[d.infoKey2]||0;
+          if (Math.abs(ip25b)>=0.005){
+            const infoFont = {name:XF, italic:true, sz:9, color:{rgb:'808080'}};
+            setCell(ws2, 'B'+r2, '      '+d.infoLabel2, {font:infoFont, border:S_BORDER});
+            setCell(ws2, 'C'+r2, '—', {font:infoFont, border:S_BORDER, alignment:{horizontal:'center'}});
+            setCell(ws2, 'D'+r2, ip25b, {font:infoFont, border:S_BORDER, numFmt:EUR_FMT});
+            setCell(ws2, 'E'+r2, '', {font:infoFont, border:S_BORDER});
+            r2++;
+          }
+        }
+      });
+    });
+    const noteRow2 = r2 + 1;
+    setCell(ws2, 'B'+noteRow2, "Export généré depuis le dashboard en ligne — même détail par marque que l'onglet « Détail développé par marque » du fichier Excel de référence.", S_NOTE);
+    extendRange(ws2, 'F'+noteRow2);
+    ws2['!cols'] = [{wch:2},{wch:44},{wch:15},{wch:15},{wch:15},{wch:11}];
+    ws2['!merges'] = [{s:{r:1,c:1}, e:{r:1,c:5}}, {s:{r:2,c:1}, e:{r:2,c:5}}, {s:{r:noteRow2-1,c:1}, e:{r:noteRow2-1,c:5}}];
+    ws2['!freeze'] = {xSplit:1, ySplit:hdr2};
+    XLSX.utils.book_append_sheet(wb, ws2, 'Détail développé par marque');
+
+    const stamp = new Date().toISOString().slice(0,10);
+    const buf = XLSX.write(wb, {type:'array', bookType:'xlsx', cellStyles:true});
+    const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    try {
+      saveBlob(`CA_Francois_Mouhot_${stamp}.xlsx`, blob);
+    } catch(err){
+      console.error('export failed', err);
+      alert("L'export a échoué : " + (err && err.message ? err.message : err));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.innerHTML = originalLabel;
+  }
+}
+
+['exportBtnTop','exportBtn'].forEach(id=>{
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', ()=> exportToExcel(btn));
+});
+
+// ---------- Note ----------
+// Cette page est servie par la fonction Supabase "ca" et ne contient aucun chiffre :
+// les données sont lues à la connexion dans la table ca_dashboard_data, protégée par
+// RLS (colonne ca_access de veille_roles, gérée depuis la gestion des utilisateurs du
+// CRM). Elles sont republiées automatiquement à chaque ACTUALISER.bat sur le PC.
+} // end renderDashboard
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://qkjxcfosutclnahvxflf.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_7br8SEiv19ctBObYMgihlw_1MAnAzMg";
+  const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+
+  const gate = document.getElementById('authGate');
+  const root = document.getElementById('dashboardRoot');
+  const form = document.getElementById('authForm');
+  const errEl = document.getElementById('authError');
+  const loadingEl = document.getElementById('authLoading');
+  const submitBtn = document.getElementById('authSubmit');
+
+  function showError(msg){
+    errEl.textContent = msg;
+    errEl.hidden = false;
+  }
+  function setLoading(on){
+    loadingEl.hidden = !on;
+    submitBtn.disabled = on;
+    submitBtn.textContent = on ? 'Connexion…' : 'Se connecter';
+  }
+
+  async function loadDashboard(){
+    const { data: { user } } = await sbClient.auth.getUser();
+    if (!user){ return showLogin(); }
+
+    const { data: roleRow, error: roleErr } = await sbClient
+      .from('veille_roles')
+      .select('ca_access, crm_active')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (roleErr || !roleRow || !roleRow.ca_access || !roleRow.crm_active){
+      await sbClient.auth.signOut();
+      errEl.hidden = false;
+      errEl.textContent = "Ce compte n'a pas accès au tableau de bord CA. Contactez l'administrateur du CRM pour l'activer.";
+      gate.style.display = 'flex';
+      root.style.display = 'none';
+      return;
+    }
+
+    const { data: row, error: dataErr } = await sbClient
+      .from('ca_dashboard_data')
+      .select('payload, updated_at')
+      .eq('id', 'latest')
+      .maybeSingle();
+
+    if (dataErr || !row){
+      errEl.hidden = false;
+      errEl.textContent = "Connecté, mais aucune donnée n'a encore été publiée. Lancez ACTUALISER.bat sur le PC du bureau, puis rechargez cette page.";
+      gate.style.display = 'flex';
+      root.style.display = 'none';
+      return;
+    }
+
+    gate.style.display = 'none';
+    root.style.display = 'block';
+    renderDashboard(row.payload);
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn){
+      logoutBtn.addEventListener('click', async () => {
+        await sbClient.auth.signOut();
+        window.location.reload();
+      });
+    }
+  }
+
+  function showLogin(){
+    gate.style.display = 'flex';
+    root.style.display = 'none';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errEl.hidden = true;
+    setLoading(true);
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const { error } = await sbClient.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error){
+      showError("Connexion impossible : identifiants incorrects.");
+      return;
+    }
+    await loadDashboard();
+  });
+
+  loadDashboard();
+})();
+</script>
+</body>
+</html>
