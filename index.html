@@ -197,6 +197,31 @@ body{
 .banner-warn{border-left-color:var(--negative);}
 .banner-warn b{color:var(--negative);}
 
+/* Bandeau repliable : la note de méthode est longue et ne se relit pas tous les
+   jours, mais elle doit rester à un clic — des chiffres dont on a perdu la
+   méthode ne sont plus des chiffres. <details> le fait sans une ligne de JS. */
+details.banner{display:block;}
+details.banner summary{
+  cursor:pointer;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--ink);
+}
+details.banner summary::-webkit-details-marker{display:none;}
+details.banner summary::before{
+  content:'\25B8';
+  color:var(--accent);
+  font-size:12px;
+  line-height:1;
+}
+details.banner[open] summary::before{content:'\25BE';}
+details.banner summary:hover{color:var(--accent);}
+details.banner > div{margin-top:10px;}
+
 .btn{
   display:inline-flex;
   align-items:center;
@@ -484,22 +509,25 @@ footer{
 
   <div class="kpis" id="kpis"></div>
 
-  <div class="banner">
+  <details class="banner">
+    <summary>Note de méthode — comment ces chiffres sont calculés</summary>
     <div>
-      <b>Note méthode.</b> Le <b>CA 2026</b> est relevé <b>en temps réel via l'API Odoo</b> (connexion directe, plus d'export manuel), <b>avoirs/notes de crédit déduits</b> des factures. Le <b>CA STI 2025</b> reste <b>figé sur les données réelles</b> (rapport commercial + fichier client) car Odoo sous-estime fortement le STI sur cette période (vérifié à chaque actualisation). 4 marques, dont la somme retombe exactement sur le total : ISOMARK = catégorie Odoo « ISOMARK » + sous-catégorie « FLOORING » (résine ISOFLOOR, détail au clic) · <b>STI = catégories Odoo « PLASTIQUE » + « SEMI-FINIS / STI »</b> · RTE = catégorie Odoo « RTE » · <b>ISOSIGN SV</b> = solde (signalisation verticale, négoce…) <b>+ transport / lignes hors catégorie</b>, regroupés ensemble. Les sous-lignes « dont … » (ISOFLOOR sous ISOMARK, transport sous ISOSIGN SV) sont <b>déjà comprises</b> dans le total de leur marque, affichées seulement pour information — ne pas les additionner en plus du total.
+      Le <b>CA 2026</b> est relevé <b>en temps réel via l'API Odoo</b> (connexion directe, plus d'export manuel), <b>avoirs/notes de crédit déduits</b> des factures. Le <b>CA STI 2025</b> reste <b>figé sur les données réelles</b> (rapport commercial + fichier client) car Odoo sous-estime fortement le STI sur cette période (vérifié à chaque actualisation). 4 marques, dont la somme retombe exactement sur le total : ISOMARK = catégorie Odoo « ISOMARK » + sous-catégorie « FLOORING » (résine ISOFLOOR, détail au clic) · <b>STI = catégories Odoo « PLASTIQUE » + « SEMI-FINIS / STI »</b> · RTE = catégorie Odoo « RTE » · <b>ISOSIGN SV</b> = solde (signalisation verticale, négoce…) <b>+ transport / lignes hors catégorie</b>, regroupés ensemble. Les sous-lignes « dont … » (ISOFLOOR sous ISOMARK, transport sous ISOSIGN SV) sont <b>déjà comprises</b> dans le total de leur marque, affichées seulement pour information — ne pas les additionner en plus du total.
       La <b>projection fin d'année</b> est calculée par client : CA 2026 à date + reste à courir estimé (CA 2025 année pleine − CA 2025 à date, jamais négatif — <b>pondération mensuelle/saisonnière propre à chaque client</b>), ajusté par un <b>taux de croissance mixte</b> combinant l'évolution propre du client à date (2026 vs 2025 à date) — pondérée par sa crédibilité selon son historique 2025 — et le taux de croissance global observé (<span id="growthRateLabel">—</span>) en repli pour les clients à faible historique, borné pour rester réaliste. Jamais en-dessous du CA déjà facturé. Override manuel pour un cas particulier (ex : DRS SIGNALISATION, plus d'affaire attendue — projection figée à son CA à date).
     </div>
-  </div>
-  <div class="banner" id="stiWarnBanner" hidden>
+  </details>
+  <details class="banner" id="stiWarnBanner" hidden>
+    <summary>Correction CA STI 2025 (année pleine, figée)</summary>
     <div>
-      <b>Correction CA STI 2025 (année pleine, figée).</b> <span id="stiWarnText"></span>
+      <span id="stiWarnText"></span>
     </div>
-  </div>
-  <div class="banner" id="stiYtdWarnBanner" hidden>
+  </details>
+  <details class="banner" id="stiYtdWarnBanner" hidden>
+    <summary>Correction CA STI 2025 (à date, figée)</summary>
     <div>
-      <b>Correction CA STI 2025 (à date, figée).</b> <span id="stiYtdWarnText"></span>
+      <span id="stiYtdWarnText"></span>
     </div>
-  </div>
+  </details>
 
   <div class="panel">
     <h2>Répartition par marque <span class="small" id="brandbarPeriodLabel">Total HT</span></h2>
