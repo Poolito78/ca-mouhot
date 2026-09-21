@@ -183,6 +183,19 @@ button.kpi[aria-expanded="true"] .label .chevron{transform:rotate(90deg);}
 .mensuel tr.cumul td{font-weight:600;border-top:2px solid var(--border);background:var(--surface-2);}
 .mensuel .note{padding:10px 18px 14px;font-size:11.5px;color:var(--muted);line-height:1.55;}
 .mensuel .note b{color:var(--ink);}
+/* Mois en cours : N-1 à même date + estimation de fin de mois */
+.mec{border-top:1px solid var(--border);margin-top:4px;}
+.mec h3{margin:0;padding:14px 18px 6px;font-size:13.5px;font-weight:600;}
+.mec h3 .small{font-weight:400;color:var(--muted);font-size:11.5px;}
+.mec td.lib{font-family:"IBM Plex Sans",sans-serif;text-align:left;white-space:nowrap;}
+.mec tr.n1 td{color:var(--muted);}
+.mec tr.ecart td.pos{color:var(--positive);} .mec tr.ecart td.neg{color:var(--negative);}
+.mec tr.estim td{font-weight:700;border-top:2px solid var(--border);background:var(--surface-2);}
+.mec td.nc{color:var(--muted);font-style:italic;font-size:11px;}
+.mec details{padding:4px 18px 14px;font-size:12px;}
+.mec details summary{cursor:pointer;color:var(--ink);font-weight:500;padding:4px 0;}
+.mec details table{min-width:640px;margin-top:6px;}
+.mec .statut{font-size:11px;color:var(--muted);white-space:nowrap;}
 .kpi.accent .label{color:#c9c6ba;}
 .kpi.accent .value{color:#d8b34a;}
 .kpi.accent .delta{color:#c9c6ba;}
@@ -716,6 +729,76 @@ document.getElementById('kpis').innerHTML = kpis.map((k, i)=>{
           <td>${fmtEURf(c.isosign)}</td><td class="dont">${fmtEURf(c.sti)}</td><td class="dont">${fmtEURf(c.rte)}</td>
           <td>${fmtEURf(c.total)}</td></tr>
       </tbody></table>`;
+  }
+
+  // ---- Mois en cours : N-1 à même date + estimation de fin de mois ----
+  // ⚠️ Le STI 2025 d'Odoo est faux : la fonction ne le publie pas (sti = null)
+  // et retire le STI d'ISOSIGN et du total 2025. La comparaison se fait donc
+  // HORS STI des deux côtés — jamais un STI 2026 réel contre un STI 2025 faux.
+  const MEC = S.mois_en_cours;
+  if (MEC && MEC.mtd26){
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const a = MEC.mtd26, n1 = MEC.mtd25 || {}, p1 = MEC.mois25_complet || {};
+    const E = MEC.estimation || {};
+    const nomMois = NOMS[MEC.mois-1] || MEC.mois;
+    const cellEcart = (v26, v25) => {
+      if (v25 == null) return '<td class="nc">n.c.</td>';
+      const d = v26 - v25, pct = v25 ? d / Math.abs(v25) : null;
+      return `<td class="${d>=0?'pos':'neg'}">${d>=0?'+':''}${fmtEURf(d)}${pct!==null?`<br><span style="font-size:10.5px">${fmtPct(pct)}</span>`:''}</td>`;
+    };
+    const hs = m => m.hors_sti ? '<sup>*</sup>' : '';
+    const cols = m => `<td>${fmtEURf(m.isomark)}</td><td class="dont">${fmtEURf(m.isofloor)}</td>
+      <td>${fmtEURf(m.isosign)}${hs(m)}</td><td class="dont">${m.sti==null?'<span class="nc">n.c.</span>':fmtEURf(m.sti)}</td><td class="dont">${fmtEURf(m.rte)}</td>
+      <td style="font-weight:600">${fmtEURf(m.total)}${hs(m)}</td>`;
+    // 2026 ramené hors STI pour se comparer au N-1 (ISOSIGN et total).
+    const a26hs = {...a, isosign: a.isosign - a.sti, total: a.total - a.sti};
+    const ecarts = (x, y) => `${cellEcart(x.isomark,y.isomark)}${cellEcart(x.isofloor,y.isofloor)}${cellEcart(x.isosign,y.isosign)}<td class="nc">n.c.</td>${cellEcart(x.rte,y.rte)}${cellEcart(x.total,y.total)}`;
+
+    let corps = `<tr><td class="lib">Facturé ${nomMois} 2026 au ${MEC.jour}</td>${cols(a)}</tr>
+      <tr class="n1"><td class="lib">Facturé ${nomMois} 2025 au ${MEC.jour} <span class="small">(hors STI*)</span></td>${cols(n1)}</tr>
+      <tr class="ecart"><td class="lib">Écart vs N-1 à même date <span class="small">(hors STI*)</span></td>${ecarts(a26hs, n1)}</tr>`;
+    let apres = '';
+    if (E.erreur){
+      corps += `<tr><td class="lib" colspan="7" style="color:var(--negative)">Estimation de fin de mois indisponible : ${esc(E.erreur)}</td></tr>`;
+    } else if (E.estimation){
+      const fin = E.fin_mois ? Number(E.fin_mois.slice(8,10)) : '';
+      const est = E.estimation;
+      const esths = {...est, isosign: est.isosign - est.sti, total: est.total - est.sti};
+      corps += `<tr><td class="lib">+ Prêt à facturer <span class="small">(livré, non facturé)</span></td>${cols(E.pret_a_facturer)}</tr>
+        <tr><td class="lib">+ Commandes à livrer d'ici le ${fin}</td>${cols(E.a_livrer_fin_mois)}</tr>
+        <tr class="estim"><td class="lib">= Estimation fin ${nomMois.toLowerCase()} 2026</td>${cols(est)}</tr>
+        <tr class="n1"><td class="lib">${nomMois} 2025 complet <span class="small">(hors STI*)</span></td>${cols(p1)}</tr>
+        <tr class="ecart"><td class="lib">Estimation vs ${nomMois.toLowerCase()} 2025 complet <span class="small">(hors STI*)</span></td>${ecarts(esths, p1)}</tr>`;
+      const H = E.hors_estimation || {};
+      const LIB = {dans_le_mois:'prévue ce mois', retard:'en retard', au_dela:'prévue après le mois', sans_date:'sans date', retard_ancien:`retard > ${H.retard_max_jours||90} j`};
+      const cdes = Array.isArray(E.commandes) ? E.commandes : [];
+      const lignesCde = cdes.map(c => `<tr><td class="mois">${esc(c.commande)}</td><td class="mois">${esc(c.client)}</td>
+        <td>${c.date ? c.date.split('-').reverse().join('/') : '—'}</td>
+        <td>${fmtEURf(c.pret)}</td><td>${fmtEURf(c.a_livrer)}</td><td>${fmtEURf(c.reste)}</td>
+        <td class="statut">${LIB[c.statut]||c.statut}</td></tr>`).join('');
+      apres = `<div class="note">
+          <b>Estimation</b> = facturé à date + prêt à facturer (lignes de commande livrées non facturées, Odoo)
+          + reste des commandes confirmées dont la date prévue tombe au plus tard le ${fin}${E.dont_retard ? ` (dont ${fmtEURf(E.dont_retard)} de commandes en retard)` : ''}.
+          <b>Hors estimation</b> : ${fmtEURf(H.au_dela_du_mois||0)} prévus après le mois,
+          ${fmtEURf(H.sans_date||0)} sans date prévue, ${fmtEURf(H.retard_ancien||0)} en retard de plus de ${H.retard_max_jours||90} jours (à vérifier).
+          ${E.nb_commandes||0} commandes en cours, montants HT.<br>
+          * Le STI 2025 d'Odoo est faux (figé à l'année sur le fichier client) : il n'est pas comparable mois par mois.
+          ISOSIGN et total 2025 sont affichés <b>hors STI</b> et les écarts se calculent hors STI des deux côtés.
+        </div>
+        ${cdes.length ? `<details><summary>Commandes prises en compte (${cdes.length}${E.nb_commandes>cdes.length?' premières':''})</summary>
+          <div class="tablewrap"><table><thead><tr>
+            <th style="text-align:left">Commande</th><th style="text-align:left">Client</th><th>Date prévue</th>
+            <th>Prêt à facturer</th><th>À livrer ce mois</th><th>Hors estimation</th><th>Statut</th>
+          </tr></thead><tbody>${lignesCde}</tbody></table></div></details>` : ''}`;
+    }
+    const bloc = document.createElement('div');
+    bloc.className = 'mec';
+    bloc.innerHTML = `<h3>${nomMois} 2026 en cours <span class="small">— comparaison N-1 au ${MEC.jour} et estimation de fin de mois</span></h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th style="text-align:left"></th><th>ISOMARK</th><th class="dont">dont ISOFLOOR</th>
+          <th>ISOSIGN</th><th class="dont">dont STI</th><th class="dont">dont RTE</th><th>Total</th></tr></thead>
+        <tbody>${corps}</tbody></table></div>${apres}`;
+    zone.after(bloc);
   }
 
   bouton.addEventListener('click', ()=>{
