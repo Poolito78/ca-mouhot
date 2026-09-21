@@ -164,6 +164,25 @@ body{
 .kpi .delta.pos{color:var(--positive);}
 .kpi .delta.neg{color:var(--negative);}
 .kpi.accent{background:#1b1d1f;}
+
+/* Carte « CA facturé 2026 » : déroule le réalisé mensuel juste sous les
+   cartes. Un vrai <button>, pour rester atteignable au clavier. */
+button.kpi{
+  font:inherit; color:inherit; text-align:left; border:0; cursor:pointer;
+  transition:background .15s;
+}
+button.kpi:hover{background:var(--surface-2);}
+button.kpi:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+.kpi .label .chevron{display:inline-block;margin-left:5px;color:var(--accent);transition:transform .15s;}
+button.kpi[aria-expanded="true"] .label .chevron{transform:rotate(90deg);}
+.mensuel{margin:-10px 0 22px;}
+.mensuel[hidden]{display:none;}
+.mensuel table{min-width:720px;}
+.mensuel td.mois{font-family:"IBM Plex Sans",sans-serif;font-weight:500;text-align:left;white-space:nowrap;}
+.mensuel th.dont, .mensuel td.dont{font-style:italic;color:var(--muted);font-size:11.5px;}
+.mensuel tr.cumul td{font-weight:600;border-top:2px solid var(--border);background:var(--surface-2);}
+.mensuel .note{padding:10px 18px 14px;font-size:11.5px;color:var(--muted);line-height:1.55;}
+.mensuel .note b{color:var(--ink);}
 .kpi.accent .label{color:#c9c6ba;}
 .kpi.accent .value{color:#d8b34a;}
 .kpi.accent .delta{color:#c9c6ba;}
@@ -524,6 +543,16 @@ footer{
   </div>
 
   <div class="kpis" id="kpis"></div>
+  <div class="panel mensuel" id="mensuelPanel" hidden>
+    <h2>Réalisé mensuel 2026 <span class="small" id="mensuelPeriode"></span></h2>
+    <div class="tablewrap" id="mensuelTable"></div>
+    <div class="note">
+      Les colonnes en italique sont <b>déjà comprises</b> dans leur marque : ISOMARK + ISOSIGN
+      donne le total, les sous-détails ne s'y ajoutent pas. Le mensuel ne couvre que <b>2026</b> :
+      le CA STI 2025 est figé au niveau de l'année sur le fichier client et n'existe pas mois par
+      mois — en afficher un découpage reviendrait à publier les chiffres d'Odoo, ceux qu'on corrige.
+    </div>
+  </div>
 
   <details class="banner">
     <summary>Note de méthode — comment ces chiffres sont calculés</summary>
@@ -634,13 +663,68 @@ const kpis = [
   {label:'Réalisé 2025 (année pleine)', value: fmtEUR(S.overall_25full), delta:null, cls:''},
   {label:'Projection fin 2026', value: fmtEUR(S.overall_projection), delta:growthProj, cls:'accent'},
 ];
-document.getElementById('kpis').innerHTML = kpis.map(k=>`
+document.getElementById('kpis').innerHTML = kpis.map((k, i)=>{
+  const deltaHtml = k.delta!==null ? `<div class="delta ${k.delta>=0?'pos':'neg'}">${typeof k.delta==='number' && Math.abs(k.delta)<5 ? fmtPct(k.delta) : (k.cls==='accent'? 'vs 2025 : '+fmtPct(k.delta) : (k.delta>=0?'+':'')+fmtEUR(k.delta)) }</div>` : '';
+  // 1re carte : cliquable, elle déroule le réalisé mensuel (comme dans le CRM).
+  if (i === 0) return `
+  <button type="button" class="kpi ${k.cls}" id="kpiMensuel" aria-expanded="false" aria-controls="mensuelPanel" title="Voir le détail mois par mois">
+    <div class="label">${k.label}<span class="chevron">▸</span></div>
+    <div class="value">${k.value}</div>
+    ${deltaHtml}
+  </button>`;
+  return `
   <div class="kpi ${k.cls}">
     <div class="label">${k.label}</div>
     <div class="value">${k.value}</div>
-    ${k.delta!==null ? `<div class="delta ${k.delta>=0?'pos':'neg'}">${typeof k.delta==='number' && Math.abs(k.delta)<5 ? fmtPct(k.delta) : (k.cls==='accent'? 'vs 2025 : '+fmtPct(k.delta) : (k.delta>=0?'+':'')+fmtEUR(k.delta)) }</div>`:''}
-  </div>
-`).join('');
+    ${deltaHtml}
+  </div>`;
+}).join('');
+
+// ---------- Réalisé mensuel 2026 (déroulé au clic sur la 1re carte) ----------
+// ⚠️ 2026 SEULEMENT : le CA STI 2025 est figé au niveau de l'année et n'existe
+// pas mois par mois. Absent des jeux publiés avant l'actualisation à la
+// demande : on le dit plutôt que d'afficher des zéros.
+(function(){
+  const NOMS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const bouton = document.getElementById('kpiMensuel');
+  const panneau = document.getElementById('mensuelPanel');
+  const zone = document.getElementById('mensuelTable');
+  if (!bouton || !panneau || !zone) return;
+
+  const mois = Array.isArray(S.monthly) ? S.monthly : [];
+  document.getElementById('mensuelPeriode').textContent = `Total HT, ${periodLabelText}`;
+
+  if (!mois.length){
+    zone.innerHTML = `<div class="note">Le détail mensuel n'est pas encore disponible : cliquez sur <b>Actualiser</b> pour le produire.</div>`;
+  } else {
+    const jour = S.cutoff_2026 ? Number(S.cutoff_2026.slice(8,10)) : null;
+    const dernier = mois[mois.length-1].mois;
+    const c = mois.reduce((a,m)=>({isomark:a.isomark+m.isomark, isofloor:a.isofloor+m.isofloor, isosign:a.isosign+m.isosign, sti:a.sti+m.sti, rte:a.rte+m.rte, total:a.total+m.total}), {isomark:0,isofloor:0,isosign:0,sti:0,rte:0,total:0});
+    const ligne = (m) => `<tr>
+      <td class="mois">${NOMS[m.mois-1] || m.mois}${m.mois===dernier && jour ? ` <span style="color:var(--muted);font-weight:400;font-size:11px">(au ${jour})</span>` : ''}</td>
+      <td>${fmtEURf(m.isomark)}</td><td class="dont">${fmtEURf(m.isofloor)}</td>
+      <td>${fmtEURf(m.isosign)}</td><td class="dont">${fmtEURf(m.sti)}</td><td class="dont">${fmtEURf(m.rte)}</td>
+      <td style="font-weight:600">${fmtEURf(m.total)}</td></tr>`;
+    zone.innerHTML = `<table>
+      <thead><tr>
+        <th style="text-align:left">Mois</th><th>ISOMARK</th><th class="dont">dont ISOFLOOR</th>
+        <th>ISOSIGN</th><th class="dont">dont STI</th><th class="dont">dont RTE</th><th>Total</th>
+      </tr></thead>
+      <tbody>${mois.map(ligne).join('')}
+        <tr class="cumul"><td class="mois">Cumul</td>
+          <td>${fmtEURf(c.isomark)}</td><td class="dont">${fmtEURf(c.isofloor)}</td>
+          <td>${fmtEURf(c.isosign)}</td><td class="dont">${fmtEURf(c.sti)}</td><td class="dont">${fmtEURf(c.rte)}</td>
+          <td>${fmtEURf(c.total)}</td></tr>
+      </tbody></table>`;
+  }
+
+  bouton.addEventListener('click', ()=>{
+    const ouvert = panneau.hidden;
+    panneau.hidden = !ouvert;
+    bouton.setAttribute('aria-expanded', String(ouvert));
+    if (ouvert) panneau.scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+})();
 
 // ---------- Brand bars ----------
 // 4 marques : ISOSIGN SV inclut désormais le hors-marque / transport (comme le tableau comparatif d'origine).
