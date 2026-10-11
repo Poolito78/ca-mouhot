@@ -1352,11 +1352,11 @@ async function exportToExcel(btn){
     }
     XLSX.utils.book_append_sheet(wb, ws3, 'CA ISOFLOOR');
 
-    // ---------- Sheet 4: Rémunération FM — CA national hors FM × 1 % ----------
+    // ---------- Sheet 4: Rémunération FM — CA national hors FM × 2 % ----------
     // Même règle que l'extraction du CRM (TAUX_REMUNERATION_FM, exportCaOdoo.ts) :
-    // 1 % du CA Flooring & Quartz national hors FM (règle du 11/10/2026). La
+    // 2 % du CA Flooring & Quartz national hors FM (règle du 11/10/2026). La
     // rémunération part en FORMULE : corriger un montant dans l'Excel la recalcule.
-    const TAUX_REMU_FM = 0.01;
+    const TAUX_REMU_FM = 0.02;
     const ws4 = {};
     if (!FQ || FQ.erreur) {
       setCell(ws4, 'B2', 'Rémunération FM — ' + (FQ ? ('récap indisponible : ' + FQ.erreur) : "récap indisponible : relancer l'actualisation."), S_NOTE);
