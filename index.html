@@ -1352,6 +1352,43 @@ async function exportToExcel(btn){
     }
     XLSX.utils.book_append_sheet(wb, ws3, 'CA ISOFLOOR');
 
+    // ---------- Sheet 4: Rémunération FM — CA national hors FM × 1 % ----------
+    // Même règle que l'extraction du CRM (TAUX_REMUNERATION_FM, exportCaOdoo.ts) :
+    // 1 % du CA Flooring & Quartz national hors FM (règle du 11/10/2026). La
+    // rémunération part en FORMULE : corriger un montant dans l'Excel la recalcule.
+    const TAUX_REMU_FM = 0.01;
+    const ws4 = {};
+    if (!FQ || FQ.erreur) {
+      setCell(ws4, 'B2', 'Rémunération FM — ' + (FQ ? ('récap indisponible : ' + FQ.erreur) : "récap indisponible : relancer l'actualisation."), S_NOTE);
+      extendRange(ws4, 'F2');
+      ws4['!cols'] = [{wch:2},{wch:90}];
+    } else {
+      setCell(ws4, 'B2', `Détail ISOFLOOR / quartz & granit par mois — ${FQ.annee}, du 01/01 au ${FQ.cutoff.split('-').reverse().join('/')}`, S_TITLE);
+      ['Mois','Total isofloor','F. MOUHOT','Hors FM CA NATIONAL',`RÉMUNÉRATION BRUT FM (${TAUX_REMU_FM*100} %)`]
+        .forEach((h,i)=> setCell(ws4, XLSX.utils.encode_cell({r:3, c:1+i}), h, S_HEADER));
+      const debut4 = 5;
+      FQ.mois.forEach((m,i)=>{
+        const r = debut4 + i;
+        setCell(ws4, 'B'+r, NOMS_MOIS[m.mois-1].toLowerCase(), sName(false));
+        setCell(ws4, 'C'+r, m.total, sNum(false));
+        setCell(ws4, 'D'+r, m.fm, sNum(false));
+        setCell(ws4, 'E'+r, m.hors_fm, sNum(true));
+        setCell(ws4, 'F'+r, m.hors_fm * TAUX_REMU_FM, sNum(true, 'C00000'));
+        ws4['F'+r].f = `E${r}*${TAUX_REMU_FM}`;
+      });
+      const fin4 = debut4 + FQ.mois.length - 1, rc = fin4 + 1;
+      setCell(ws4, 'B'+rc, 'CUMUL', sName(true, 'FCE4E4'));
+      ['C','D','E','F'].forEach(col=>{
+        let sum = 0; for (let r=debut4; r<=fin4; r++) sum += ws4[col+r].v;
+        setCell(ws4, col+rc, sum, sNum(true, col==='F' ? 'C00000' : undefined));
+        ws4[col+rc].f = `SUM(${col}${debut4}:${col}${fin4})`;
+        ws4[col+rc].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
+      });
+      extendRange(ws4, 'F'+rc);
+      ws4['!cols'] = [{wch:2},{wch:14},{wch:18},{wch:18},{wch:22},{wch:30}];
+    }
+    XLSX.utils.book_append_sheet(wb, ws4, 'Rémunération FM');
+
     const stamp = new Date().toISOString().slice(0,10);
     const buf = XLSX.write(wb, {type:'array', bookType:'xlsx', cellStyles:true});
     const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
