@@ -1263,6 +1263,82 @@ async function exportToExcel(btn){
     ws2['!freeze'] = {xSplit:1, ySplit:hdr2};
     XLSX.utils.book_append_sheet(wb, ws2, 'Détail développé par marque');
 
+    // ---------- Sheet 3: CA ISOFLOOR — Flooring & Quartz tous commerciaux, puis hors FM ----------
+    // Données publiées par ca-refresh (summary.flooring_quartz). Le périmètre est celui du
+    // favori Odoo « Analyse des factures Flooring&Quartz » : favori introuvable -> l'onglet
+    // affiche l'erreur, jamais un chiffre de repli.
+    const FQ = S.flooring_quartz;
+    const ws3 = {};
+    setCell(ws3, 'B2', 'CA ISOFLOOR — Flooring & Quartz, tous commerciaux, puis hors François MOUHOT', S_TITLE);
+    const NOMS_MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    if (!FQ || FQ.erreur) {
+      setCell(ws3, 'B4', FQ ? ('Récap indisponible : ' + FQ.erreur) : "Récap indisponible : relancer l'actualisation (bouton Actualiser).", S_NOTE);
+      extendRange(ws3, 'J4');
+      ws3['!cols'] = [{wch:2},{wch:90}];
+    } else {
+      const cut = FQ.cutoff.split('-').reverse().join('/');
+      setCell(ws3, 'B3', `Année ${FQ.annee}, du 01/01 au ${cut} — Total HT, source Odoo (favori « ${FQ.favori} »), avoirs déduits. Hors FM = national hors IDF Nord.`, S_SUBTITLE);
+      const hdr3 = 5;
+      ['Mois','ISOFLOOR','Quartz & granit','Total global','− F. MOUHOT','= Hors FM','dont ISOFLOOR hors FM','dont quartz hors FM']
+        .forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:hdr3-1, c:1+i}), h, S_HEADER));
+      const cols3 = ['isofloor','quartz','total','fm','hors_fm','hors_fm_isofloor','hors_fm_quartz'];
+      const dernier = FQ.mois.length ? FQ.mois[FQ.mois.length-1].mois : 0;
+      const jour = Number(FQ.cutoff.slice(8,10));
+      let r3 = hdr3 + 1;
+      const premiere = r3;
+      FQ.mois.forEach(m=>{
+        setCell(ws3, 'B'+r3, NOMS_MOIS[m.mois-1] + (m.mois===dernier ? ` (au ${jour})` : ''), sName(false));
+        cols3.forEach((k,j)=>{
+          const st = k==='hors_fm' ? sNum(true, 'C00000') : (k.startsWith('hors_fm_') ? sNum(false, '808080') : sNum(k==='total'));
+          setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+j}), m[k], st);
+        });
+        r3++;
+      });
+      setCell(ws3, 'B'+r3, 'CUMUL', sName(true, 'FCE4E4'));
+      cols3.forEach((k,j)=>{
+        const col = XLSX.utils.encode_col(2+j);
+        let sum = 0; for (let rr=premiere; rr<r3; rr++){ const c = ws3[col+rr]; if (c) sum += c.v; }
+        setCell(ws3, col+r3, sum, sNum(true, k==='hors_fm' ? 'C00000' : undefined));
+        ws3[col+r3].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
+      });
+      r3 += 2;
+
+      // Par commercial, comme le tableau croisé d'Odoo.
+      setCell(ws3, 'B'+r3, 'Par commercial', S_TITLE); r3++;
+      const hdrC = r3;
+      ['Commercial', ...FQ.mois.map(m=>NOMS_MOIS[m.mois-1]), 'Total']
+        .forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:hdrC-1, c:1+i}), h, S_HEADER));
+      r3++;
+      FQ.commerciaux.forEach(c=>{
+        setCell(ws3, 'B'+r3, c.nom + (c.fm ? ' (déduit)' : ''), sName(c.fm, c.fm ? 'EDEDED' : undefined));
+        c.mois.forEach((v,i)=> setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+i}), v, sNum(false)));
+        setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+c.mois.length}), c.total, sNum(true));
+        r3++;
+      });
+      r3++;
+
+      setCell(ws3, 'B'+r3, 'Catégories Odoo comprises', S_TITLE); r3++;
+      ['Catégorie','Rangée en','Total HT'].forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:1+i}), h, S_HEADER));
+      r3++;
+      FQ.categories.forEach(c=>{
+        setCell(ws3, 'B'+r3, c.nom, sName(false));
+        setCell(ws3, 'C'+r3, c.isofloor ? 'ISOFLOOR' : 'Quartz & granit', sName(false));
+        setCell(ws3, 'D'+r3, c.total, sNum(false));
+        r3++;
+      });
+      r3++;
+      setCell(ws3, 'B'+r3, `Périmètre = favori Odoo « ${FQ.favori} », relu à chaque actualisation (${FQ.nb_lignes} lignes, mesure ${FQ.mesure}). ISOFLOOR = catégories « ISOMARK / FLOORING », le reste du favori est compté en quartz & granit. Hors FM = total de tous les commerciaux − factures de François MOUHOT ; les colonnes « dont » sont déjà comprises dans le hors FM.`, S_NOTE);
+      const lastCol = Math.max(8, 2 + FQ.mois.length);
+      extendRange(ws3, XLSX.utils.encode_cell({r:r3-1, c:lastCol}));
+      ws3['!cols'] = [{wch:2},{wch:30}, ...Array.from({length:lastCol-1}, ()=>({wch:15}))];
+      ws3['!merges'] = [
+        {s:{r:1,c:1}, e:{r:1,c:lastCol}}, {s:{r:2,c:1}, e:{r:2,c:lastCol}},
+        {s:{r:r3-1,c:1}, e:{r:r3-1,c:lastCol}},
+      ];
+      ws3['!freeze'] = {xSplit:2, ySplit:hdr3};
+    }
+    XLSX.utils.book_append_sheet(wb, ws3, 'CA ISOFLOOR');
+
     const stamp = new Date().toISOString().slice(0,10);
     const buf = XLSX.write(wb, {type:'array', bookType:'xlsx', cellStyles:true});
     const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
