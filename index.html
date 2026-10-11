@@ -1277,14 +1277,41 @@ async function exportToExcel(btn){
       ws3['!cols'] = [{wch:2},{wch:90}];
     } else {
       const cut = FQ.cutoff.split('-').reverse().join('/');
-      setCell(ws3, 'B3', `Année ${FQ.annee}, du 01/01 au ${cut} — Total HT, source Odoo (favori « ${FQ.favori} »), avoirs déduits. Hors FM = national hors IDF Nord.`, S_SUBTITLE);
-      const hdr3 = 5;
-      ['Mois','ISOFLOOR','Quartz & granit','Total global','− F. MOUHOT','= Hors FM','dont ISOFLOOR hors FM','dont quartz hors FM']
-        .forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:hdr3-1, c:1+i}), h, S_HEADER));
-      const cols3 = ['isofloor','quartz','total','fm','hors_fm','hors_fm_isofloor','hors_fm_quartz'];
+      setCell(ws3, 'B3', `Année ${FQ.annee}, du 01/01 au ${cut} — Total HT des factures et avoirs clients, source Odoo (favori « ${FQ.favori} »). CA national hors FM = Total − François MOUHOT (hors IDF Nord).`, S_SUBTITLE);
       const dernier = FQ.mois.length ? FQ.mois[FQ.mois.length-1].mois : 0;
       const jour = Number(FQ.cutoff.slice(8,10));
+
+      // 1. Le tableau croisé d'Odoo à l'identique (commerciaux en lignes, mois en
+      //    colonnes, Total en tête), puis la ligne CA national hors FM.
+      const hdr3 = 5;
+      const nbM = FQ.mois.length;
+      const sommeMois = k => FQ.mois.reduce((a,m)=> a + m[k], 0);
+      ['', ...FQ.mois.map(m=> NOMS_MOIS[m.mois-1].toLowerCase() + ' ' + FQ.annee + (m.mois===dernier ? ` (au ${jour})` : '')), 'Total HT']
+        .forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:hdr3-1, c:1+i}), h, S_HEADER));
       let r3 = hdr3 + 1;
+      const ligneTotal = (libelle, vals, total, fill, color) => {
+        setCell(ws3, 'B'+r3, libelle, sName(true, fill));
+        vals.forEach((v,i)=>{ setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+i}), v, sNum(true, color)); ws3[XLSX.utils.encode_cell({r:r3-1, c:2+i})].s.fill = {fgColor:{rgb:fill}, patternType:'solid'}; });
+        const a = XLSX.utils.encode_cell({r:r3-1, c:2+nbM});
+        setCell(ws3, a, total, sNum(true, color)); ws3[a].s.fill = {fgColor:{rgb:fill}, patternType:'solid'};
+        r3++;
+      };
+      ligneTotal('Total', FQ.mois.map(m=>m.total), sommeMois('total'), 'EDEDED');
+      FQ.commerciaux.forEach(c=>{
+        setCell(ws3, 'B'+r3, c.nom, sName(c.fm));
+        c.mois.forEach((v,i)=> { if (v) setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+i}), v, sNum(false)); });
+        setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+nbM}), c.total, sNum(true));
+        r3++;
+      });
+      ligneTotal('CA national hors FM (Total − F. MOUHOT)', FQ.mois.map(m=>m.hors_fm), sommeMois('hors_fm'), 'FCE4E4', 'C00000');
+      r3 += 1;
+
+      // 2. Détail ISOFLOOR / quartz & granit par mois.
+      setCell(ws3, 'B'+r3, 'Détail ISOFLOOR / quartz & granit par mois', S_TITLE); r3++;
+      ['Mois','ISOFLOOR','Quartz & granit','Total global','− F. MOUHOT','= Hors FM','dont ISOFLOOR hors FM','dont quartz hors FM']
+        .forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:1+i}), h, S_HEADER));
+      r3++;
+      const cols3 = ['isofloor','quartz','total','fm','hors_fm','hors_fm_isofloor','hors_fm_quartz'];
       const premiere = r3;
       FQ.mois.forEach(m=>{
         setCell(ws3, 'B'+r3, NOMS_MOIS[m.mois-1] + (m.mois===dernier ? ` (au ${jour})` : ''), sName(false));
@@ -1302,20 +1329,6 @@ async function exportToExcel(btn){
         ws3[col+r3].s.fill = {fgColor:{rgb:'FCE4E4'}, patternType:'solid'};
       });
       r3 += 2;
-
-      // Par commercial, comme le tableau croisé d'Odoo.
-      setCell(ws3, 'B'+r3, 'Par commercial', S_TITLE); r3++;
-      const hdrC = r3;
-      ['Commercial', ...FQ.mois.map(m=>NOMS_MOIS[m.mois-1]), 'Total']
-        .forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:hdrC-1, c:1+i}), h, S_HEADER));
-      r3++;
-      FQ.commerciaux.forEach(c=>{
-        setCell(ws3, 'B'+r3, c.nom + (c.fm ? ' (déduit)' : ''), sName(c.fm, c.fm ? 'EDEDED' : undefined));
-        c.mois.forEach((v,i)=> setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+i}), v, sNum(false)));
-        setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:2+c.mois.length}), c.total, sNum(true));
-        r3++;
-      });
-      r3++;
 
       setCell(ws3, 'B'+r3, 'Catégories Odoo comprises', S_TITLE); r3++;
       ['Catégorie','Rangée en','Total HT'].forEach((h,i)=> setCell(ws3, XLSX.utils.encode_cell({r:r3-1, c:1+i}), h, S_HEADER));
